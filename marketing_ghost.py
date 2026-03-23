@@ -1,82 +1,58 @@
 import asyncio
 import os
-from pyrogram import Client
-from pyrogram.errors import FloodWait, RPCError
+from pyrogram import Client, enums
+from pyrogram.errors import FloodWait
 
-# --- إعدادات الحسابات (يتم سحبها من Environment Variables للأمان) ---
-# ملاحظة: إذا كنت ستشغله محلياً، يمكنك استبدال os.getenv بالقيم مباشرة بين " "
+# --- بيانات الحسابات (تأكد من وضع الـ String Sessions الخاصة بك) ---
 ACCOUNTS = [
     {
         "name": "Saudi_Alpha",
-        "session": os.getenv("SESSION_1"),
-        "api_id": os.getenv("API_ID_1"),
-        "api_hash": os.getenv("API_HASH_1"),
-        "targets": ["@WhalePool", "@CryptoWhalePump", "@BinanceArabic", "@DeFi_Whales"]
+        "session": "STRING_SESSION_1_HERE",
+        "api_id": "API_ID_1",
+        "api_hash": "API_HASH_1",
+        "targets": ["@WhalePool", "@CryptoWhalePump", "@BinanceArabic"]
     },
     {
         "name": "Saudi_Beta",
-        "session": os.getenv("SESSION_2"),
-        "api_id": os.getenv("API_ID_2"),
-        "api_hash": os.getenv("API_HASH_2"),
-        "targets": ["@otcru", "@cryptochina", "@KuCoin_Exchange", "@Mixer_Community"]
+        "session": "STRING_SESSION_2_HERE",
+        "api_id": "API_ID_2",
+        "api_hash": "API_HASH_2",
+        "targets": ["@otcru", "@cryptochina", "@KuCoin_Exchange"]
     }
 ]
 
-# الرسالة الاحترافية الموحدة (يمكنك تغييرها لاحقاً حسب اللغة)
-MARKETING_MSG = """
-🛡️ **ShadowMix V6.5 | The Ultimate Ghost Protocol**
+# الرابط الاحترافي الذي أنشأته أنت
+TELEGRAPH_LINK = "https://telegra.ph/ShadowMix-V65--The-Invisible-Crypto-Shield-03-23"
 
-Tired of surveillance? Hide your crypto trails with the most advanced mixer.
-✅ **Liquidity Shredding:** Automatic split into 250+ transactions.
-✅ **Zero-Trace:** RAM-only servers, no logs ever.
-✅ **Multi-Chain:** Polygon, ETH, and BNB supported.
+# نص الرسالة المنسق بـ HTML لجذب الحيتان
+MARKETING_MSG = (
+    f"<a href='{TELEGRAPH_LINK}'>&#8203;</a>" # خدعة الرابط المخفي لإظهار المعاينة
+    f"<b>🛡️ ShadowMix V6.5 | The Ultimate Ghost Protocol</b>\n\n"
+    f"Stop being tracked by surveillance firms. Shred your crypto now with the most advanced mixer.\n\n"
+    f"✅ <b>Liquidity Shredding</b> (250+ Splits)\n"
+    f"✅ <b>Zero-Trace</b> (RAM-only Servers)\n"
+    f"✅ <b>Cross-Chain</b> (Safe Hopping)\n\n"
+    f"🚀 <b>START MIXING:</b> <a href='https://t.me/YourBotUser'>@YourBotUser</a>\n" # استبدل YourBotUser بمعرف بوتك
+    f"<i>In a world of surveillance, be a shadow.</i>"
+)
 
-🚀 **Start Now:** [رابط_بوتك_هنا]
-*In a world of surveillance, be a shadow.*
-"""
-
-async def run_marketing_machine(acc):
-    if not acc["session"]:
-        print(f"⚠️ Skipping {acc['name']}: No Session String found.")
-        return
-
-    try:
-        async with Client(
-            name=acc["name"],
-            session_string=acc["session"],
-            api_id=int(acc["api_id"]),
-            api_hash=acc["api_hash"]
-        ) as app:
-            print(f"✅ {acc['name']} is ONLINE and ready for deployment.")
-            
-            while True:
-                for group in acc["targets"]:
-                    try:
-                        await app.send_message(group, MARKETING_MSG)
-                        print(f"🚀 SUCCESS: {acc['name']} posted in {group}")
-                        
-                        # انتظار 25 دقيقة (1500 ثانية) بين كل منشور لتجنب الحظر
-                        await asyncio.sleep(1500) 
-                        
-                    except FloodWait as e:
-                        print(f"⏳ FloodWait for {acc['name']}: Waiting {e.value} seconds...")
-                        await asyncio.sleep(e.value)
-                    except RPCError as e:
-                        print(f"❌ RPC Error for {acc['name']} in {group}: {e}")
-                        continue
-                    except Exception as e:
-                        print(f"❌ Unexpected Error: {e}")
-                        continue
-    except Exception as e:
-        print(f"❌ Critical Error starting {acc['name']}: {e}")
+async def run_account(acc):
+    async with Client(acc["name"], session_string=acc["session"], api_id=acc["api_id"], api_hash=acc["api_hash"]) as app:
+        print(f"✅ {acc['name']} is ONLINE and targeting whales...")
+        while True:
+            for group in acc["targets"]:
+                try:
+                    # إرسال الرسالة بتنسيق HTML
+                    await app.send_message(group, MARKETING_MSG, parse_mode=enums.ParseMode.HTML)
+                    print(f"🚀 {acc['name']} posted successfully in {group}")
+                    await asyncio.sleep(1800) # انتظار 30 دقيقة (أكثر أماناً للأرقام الوهمية)
+                except FloodWait as e:
+                    await asyncio.sleep(e.value)
+                except Exception as e:
+                    print(f"❌ Error in {group}: {e}")
 
 async def main():
-    print("🛰️ ShadowMix Global Marketing Army Initializing...")
-    # تشغيل الحسابين بالتوازي
-    await asyncio.gather(*[run_marketing_machine(acc) for acc in ACCOUNTS])
+    await asyncio.gather(*[run_account(a) for a in ACCOUNTS])
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n🛑 Marketing Army Disengaged.")
+    asyncio.run(main())
